@@ -49,9 +49,10 @@ cd gaussian_mindspore
 
 # 运行快速安装脚本
 ./quick_install.sh          # Linux/Mac
-# 或
 quick_install.bat           # Windows
 ```
+
+**Windows用户**: 请查看 [WINDOWS_QUICKSTART.md](WINDOWS_QUICKSTART.md) 获取详细指导
 
 ### 方法2: 手动安装 (MindSpore 2.6)
 
@@ -73,11 +74,14 @@ python test_installation.py
 
 ```bash
 pip install mindspore==2.6.0
-pip install numpy==1.24.3 opencv-python tqdm einops pyyaml
+# numpy会自动安装兼容版本(如1.26)，这是正常的！
+pip install opencv-python tqdm einops pyyaml
 pip install -e .
 ```
 
 ### 常见问题
+
+**关于numpy版本**: MindSpore 2.6会自动安装numpy 1.26，这是官方支持的版本，无需担心！
 
 如果遇到 `pytest` 安装错误：
 ```bash

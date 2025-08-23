@@ -19,6 +19,7 @@ python -m pip install --upgrade pip
 
 REM 安装MindSpore 2.6
 echo 🧠 安装MindSpore 2.6...
+echo ℹ️  MindSpore会自动安装兼容的numpy版本(如1.26)，这是正常的
 python -m pip install mindspore==2.6.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 REM 验证MindSpore
@@ -28,6 +29,10 @@ if errorlevel 1 (
     echo ❌ MindSpore安装失败，尝试从官方源安装...
     python -m pip install mindspore==2.6.0
 )
+
+REM 显示numpy版本
+echo 📊 检查numpy版本...
+python -c "import numpy; print(f'NumPy version: {numpy.__version__} (兼容MindSpore 2.6)')"
 
 REM 安装核心依赖
 echo 📚 安装核心依赖...

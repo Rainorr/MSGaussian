@@ -12,7 +12,7 @@ except FileNotFoundError:
     # Fallback to minimal requirements
     requirements = [
         "mindspore>=2.6.0",
-        "numpy>=1.21.0,<1.25.0",
+        "numpy>=1.21.0",
         "opencv-python>=4.5.0",
         "Pillow>=8.0.0",
         "tqdm>=4.62.0",
