@@ -38,10 +38,66 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+## 🚀 Installation
+
+### 方法1: 快速安装 (推荐)
+
+```bash
+# Clone the repository
+git clone https://github.com/Rainorr/gaussian_mindspore.git
+cd gaussian_mindspore
+
+# 运行快速安装脚本
+./quick_install.sh          # Linux/Mac
+# 或
+quick_install.bat           # Windows
+```
+
+### 方法2: 手动安装 (MindSpore 2.6)
+
+```bash
+# 1. 安装MindSpore 2.6
+pip install mindspore==2.6.0
+
+# 2. 安装核心依赖
+pip install -r requirements_mindspore26.txt
+
+# 3. 安装项目
+pip install -e .
+
+# 4. 验证安装
+python test_installation.py
+```
+
+### 方法3: 最小安装
+
+```bash
+pip install mindspore==2.6.0
+pip install numpy==1.24.3 opencv-python tqdm einops pyyaml
+pip install -e .
+```
+
+### 常见问题
+
+如果遇到 `pytest` 安装错误：
+```bash
+# 跳过开发依赖，只安装核心功能
+pip install -r requirements_mindspore26.txt
+pip install -e .
+```
+
+详细安装指南请查看 [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)
+
 ## 🏃‍♂️ Quick Start
 
 ```bash
-# Training
+# 验证安装
+python test_installation.py
+
+# 运行演示
+python test_migration_demo.py
+
+# Training (需要数据集)
 python scripts/train.py --config configs/gaussianlss.yaml
 
 # Evaluation

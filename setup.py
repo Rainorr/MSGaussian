@@ -4,9 +4,21 @@ Setup script for GaussianLSS MindSpore implementation.
 
 from setuptools import setup, find_packages
 
-# Read requirements
-with open('requirements.txt', 'r') as f:
-    requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+# Read requirements - use compatible version for MindSpore 2.6
+try:
+    with open('requirements_mindspore26.txt', 'r') as f:
+        requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+except FileNotFoundError:
+    # Fallback to minimal requirements
+    requirements = [
+        "mindspore>=2.6.0",
+        "numpy>=1.21.0,<1.25.0",
+        "opencv-python>=4.5.0",
+        "Pillow>=8.0.0",
+        "tqdm>=4.62.0",
+        "einops>=0.4.0",
+        "pyyaml>=5.4.0",
+    ]
 
 # Read README
 with open('README.md', 'r', encoding='utf-8') as f:
