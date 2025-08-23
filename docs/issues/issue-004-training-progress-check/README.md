@@ -94,7 +94,7 @@
 ## 📁 相关文件
 
 ### 分析报告
-- [training_analysis.md](files/training_analysis.md) - 详细训练分析报告
+- [final_epoch_results.md](files/final_epoch_results.md) - 最终epoch详细结果报告
 
 ### 训练日志文件
 - [training_full.log](logs/training_full.log) - 第一次完整训练日志 (322行)
