@@ -18,6 +18,7 @@ docs/issues/
 |---------|---------|------|----------|----------|
 | [001](issue-001-dependencies/) | MindSpore 2.6依赖安装问题 | ✅ 已解决 | 2025-08-23 | 2025-08-23 |
 | [002](issue-002-github-upload/) | GitHub仓库上传权限问题 | 🔄 进行中 | 2025-08-23 | - |
+| [004](issue-004-training-progress-check/) | GaussianLSS训练进度查询 | ✅ 已解决 | 2025-08-23 | 2025-08-23 |
 | [003](issue-003-background-training-status/) | background-training-status | ✅ 已解决 | 2025-08-23 | 2025-08-23 |
 
 ## 🏷️ 问题分类
