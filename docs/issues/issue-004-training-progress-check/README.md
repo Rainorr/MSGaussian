@@ -96,6 +96,7 @@
 ### 分析报告
 - [final_epoch_results.md](files/final_epoch_results.md) - 最终epoch详细结果报告
 - [epoch_5_detailed_results.md](files/epoch_5_detailed_results.md) - 第5个epoch详细训练结果
+- [detailed_training_metrics_analysis.md](files/detailed_training_metrics_analysis.md) - 大模型训练指标详细分析文档
 
 ### 训练日志文件
 - [training_full.log](logs/training_full.log) - 第一次完整训练日志 (322行)

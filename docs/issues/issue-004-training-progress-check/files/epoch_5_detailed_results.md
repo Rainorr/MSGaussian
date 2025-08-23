@@ -23,6 +23,34 @@ Epoch 5: 100%|██████████| 162/162 [17:26<00:00,  0.15it/s, v
 - **训练速度**: 0.15 iterations/second
 - **版本号**: v_num=0520
 
+### 🎯 IoU和损失指标详情
+
+根据代码分析，第5个epoch记录了以下详细指标（存储在wandb中）：
+
+#### IoU指标系统
+- **IoU_vehicle**: 车辆检测的交并比
+  - 阈值: [0.4, 0.45, 0.5]
+  - 计算方式: TP/(TP+FP+FN)
+- **mIoU**: 平均交并比 (Mean IoU)
+  - 所有IoU指标的平均值
+  - 用作模型性能的主要监控指标
+
+#### 损失函数分解
+- **train/loss**: 总体训练损失
+- **train/loss/center**: 中心点损失 (CenterLoss)
+- **train/loss/offset**: 偏移损失 (OffsetLoss)  
+- **train/loss/bev**: BEV分割损失 (BinarySegmentationLoss)
+
+#### 权重参数
+- **train/weights/**: 可学习权重参数
+  - 多任务学习的权重平衡
+  - 动态调整各损失项的重要性
+
+#### 高斯相关指标
+- **train/num_gaussians**: 高斯数量
+  - 3D高斯表示的数量统计
+  - 反映模型复杂度
+
 ## 📈 性能分析
 
 ### 时间效率
