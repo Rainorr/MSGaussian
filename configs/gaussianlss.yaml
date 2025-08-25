@@ -1,0 +1,199 @@
+# GaussianLSS MindSpore Configuration
+
+# Device configuration
+device:
+  target: "CPU"  # "GPU", "CPU", "Ascend"
+  id: 0
+
+# Data configuration
+data:
+  dataset_dir: "/workspace/GaussianLSS_MindSpore/data/nuscenes"
+  labels_dir: "/workspace/GaussianLSS_MindSpore/data/processed"
+  batch_size: 1
+  num_workers: 1
+  
+  # Data transformation configuration
+  transform_config:
+    image_config:
+      h: 224
+      w: 480
+      top_crop: 46
+    
+    # Object types to include
+    vehicle: true
+    ped: true
+    image_data: true
+    
+    # Augmentation configuration (optional)
+    augment_config:
+      enable: false
+      rotation_range: 5.0
+      translation_range: 0.1
+      scale_range: 0.1
+
+# Model configuration
+model:
+  embed_dims: 256
+  
+  # Backbone configuration
+  backbone:
+    name: "efficientnet-b4"
+    pretrained: true
+    out_indices: [2, 3, 4, 5]
+    frozen_stages: -1
+  
+  # Neck configuration (FPN-like)
+  neck:
+    type: "FPN"
+    in_channels: [56, 112, 160, 272]  # EfficientNet-B4 channels
+    out_channels: 256
+    num_outs: 4
+  
+  # Head configuration
+  head:
+    type: "GaussianHead"
+    in_channels: 256
+    feat_channels: 256
+    num_gaussians: 1000
+    depth_num: 64
+  
+  # Decoder configuration
+  decoder:
+    type: "BEVDecoder"
+    in_channels: 256
+    hidden_channels: 128
+    num_classes: 2  # vehicle, pedestrian
+  
+  # Gaussian rendering parameters
+  gaussian_params:
+    depth_start: 1.0
+    depth_max: 61.0
+    depth_num: 64
+    opacity_filter: 0.05
+    error_tolerance: 1.0
+    img_h: 224
+    img_w: 480
+
+# Loss configuration
+loss:
+  seg_weight: 1.0
+  center_weight: 1.0
+  offset_weight: 0.5
+  visibility_weight: 0.1
+  
+  # Focal loss parameters
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  
+  # Smooth L1 loss parameters
+  smooth_l1_beta: 1.0
+
+# Optimizer configuration
+optimizer:
+  name: "adam"  # "adam", "sgd"
+  lr: 0.0001
+  weight_decay: 0.0001
+  
+  # Adam-specific parameters
+  beta1: 0.9
+  beta2: 0.999
+  eps: 1e-8
+  
+  # SGD-specific parameters (if using SGD)
+  momentum: 0.9
+
+# Learning rate scheduler (optional)
+scheduler:
+  type: "cosine"  # "cosine", "step", "exponential"
+  warmup_epochs: 5
+  warmup_lr: 0.00001
+  min_lr: 0.000001
+  
+  # Step scheduler parameters
+  step_size: 30
+  gamma: 0.1
+  
+  # Exponential scheduler parameters
+  decay_rate: 0.95
+
+# Training configuration
+training:
+  epochs: 50
+  
+  # Checkpointing
+  checkpoint_dir: "checkpoints"
+  save_interval: 500  # Save every N steps
+  keep_checkpoint_max: 5
+  
+  # Validation
+  val_interval: 1  # Validate every N epochs
+  
+  # Logging
+  log_interval: 10  # Log every N steps
+  
+  # Performance
+  dataset_sink_mode: true
+  
+  # Mixed precision (if supported)
+  amp_level: "O0"  # "O0", "O1", "O2", "O3"
+
+# Evaluation configuration
+evaluation:
+  metrics:
+    - "segmentation_iou"
+    - "detection_ap"
+    - "center_mae"
+    - "offset_rmse"
+  
+  # Detection evaluation parameters
+  detection:
+    score_threshold: 0.1
+    nms_threshold: 0.5
+    max_detections: 100
+  
+  # Segmentation evaluation parameters
+  segmentation:
+    threshold: 0.5
+    ignore_index: 255
+
+# Visualization configuration (for inference/debugging)
+visualization:
+  enable: false
+  output_dir: "visualizations"
+  
+  # What to visualize
+  show_bev: true
+  show_detections: true
+  show_segmentation: true
+  show_center_points: true
+  
+  # Visualization parameters
+  bev_size: [200, 200]
+  color_map: "viridis"
+  alpha: 0.7
+
+# Logging configuration
+logging:
+  level: "INFO"
+  
+  # Weights & Biases (optional)
+  wandb:
+    enable: false
+    project: "gaussianlss-mindspore"
+    entity: null
+    tags: ["mindspore", "3d-detection", "bev"]
+  
+  # TensorBoard
+  tensorboard:
+    enable: true
+    log_dir: "logs/tensorboard"
+
+# Reproducibility
+seed: 42
+deterministic: true
+
+# Profiling (for performance analysis)
+profiling:
+  enable: false
+  output_dir: "profiling"
+  profile_steps: 100

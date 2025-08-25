@@ -1,0 +1,24 @@
+# Core Framework
+mindspore>=2.6.0
+
+# Computer Vision
+opencv-python>=4.5.0
+Pillow>=8.0.0
+
+# Scientific Computing
+numpy>=1.21.0
+
+# Data Processing
+pandas>=1.3.0
+
+# Configuration
+PyYAML>=6.0
+
+# Utilities
+tqdm>=4.62.0
+
+# NuScenes Dataset
+nuscenes-devkit>=1.1.0
+
+# Visualization (optional)
+matplotlib>=3.3.0
