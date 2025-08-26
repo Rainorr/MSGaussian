@@ -194,11 +194,11 @@ class DataModule:
 
     @property
     def train_dataset(self):
-        return self.train_dataset
+        return self._train_dataset
 
     @property
     def val_dataset(self):
-        return self.val_dataset
+        return self._val_dataset
 
     @train_dataset.setter
     def train_dataset(self, value):
