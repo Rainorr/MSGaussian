@@ -136,8 +136,9 @@ def process_sample(nusc: NuScenes, sample_token: str) -> Dict[str, Any]:
             intrinsics.append(get_camera_intrinsics(nusc, cam_token).tolist())
             extrinsics.append(get_camera_extrinsics(nusc, cam_token, cam['ego_pose_token']).tolist())
             
-            # Get image path (relative to dataset root)
-            images.append(cam['filename'])
+            # Get image path (relative to dataset root) - normalize path separators
+            filename = cam['filename'].replace('\\', '/')
+            images.append(filename)
             
             # Get boxes in this camera
             boxes = get_boxes_in_camera(nusc, sample_token, cam_token)
