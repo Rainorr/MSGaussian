@@ -1,16 +1,16 @@
-# GaussianLSS MindSpore Configuration
+# GaussianLSS MindSpore Configuration - Linux Optimized
 
 # Device configuration
 device:
-  target: "GPU"  # "GPU", "CPU", "Ascend"
+  target: "CPU"  # "GPU", "CPU", "Ascend"
   id: 0
 
 # Data configuration
 data:
-  dataset_dir: "/workspace/GaussianLSS/data/nuscenes"
-  labels_dir: "/workspace/GaussianLSS/data/processed"
-  batch_size: 2
-  num_workers: 4
+  dataset_dir: "/workspace/GaussianLSS_MindSpore/data/nuscenes"
+  labels_dir: "/workspace/GaussianLSS_MindSpore/data/processed"
+  batch_size: 1
+  num_workers: 1
   
   # Data transformation configuration
   transform_config:
@@ -116,14 +116,14 @@ scheduler:
   # Exponential scheduler parameters
   decay_rate: 0.95
 
-# Training configuration
+# Training configuration - Linux Optimized
 training:
-  epochs: 50
+  epochs: 20  # Reduced for faster training
   
   # Checkpointing
   checkpoint_dir: "checkpoints"
-  save_interval: 500  # Save every N steps
-  keep_checkpoint_max: 5
+  save_interval: 100  # Save every N steps
+  keep_checkpoint_max: 10
   
   # Validation
   val_interval: 1  # Validate every N epochs
@@ -131,11 +131,11 @@ training:
   # Logging
   log_interval: 10  # Log every N steps
   
-  # Performance
-  dataset_sink_mode: true
+  # Performance - Linux optimized
+  dataset_sink_mode: false  # Better for debugging and stability
   
-  # Mixed precision (if supported)
-  amp_level: "O0"  # "O0", "O1", "O2", "O3"
+  # Mixed precision (disabled for CPU)
+  amp_level: "O0"  # "O0" for CPU training
 
 # Evaluation configuration
 evaluation:

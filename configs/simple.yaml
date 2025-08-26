@@ -1,0 +1,56 @@
+# GaussianLSS MindSpore - 极简配置
+
+# 数据配置
+data:
+  dataset_dir: "data/nuscenes"
+  labels_dir: "data/processed"
+  batch_size: 1
+  num_workers: 1
+  
+  transform_config:
+    image_config:
+      h: 224
+      w: 480
+      top_crop: 46
+    vehicle: true
+    ped: true
+    image_data: true
+
+# 模型配置
+model:
+  embed_dims: 256
+  
+  backbone:
+    name: "efficientnet-b4"
+    pretrained: true
+    out_indices: [2, 3, 4, 5]
+    frozen_stages: -1
+  
+  neck:
+    type: "FPN"
+    in_channels: [56, 112, 160, 272]
+    out_channels: 256
+    num_outs: 4
+  
+  head:
+    type: "GaussianHead"
+    in_channels: 256
+    feat_channels: 256
+    num_gaussians: 1000
+    depth_num: 64
+  
+  gaussian_params:
+    depth_start: 1.0
+    depth_max: 61.0
+    depth_num: 64
+    img_h: 224
+    img_w: 480
+
+# 优化器配置
+optimizer:
+  lr: 0.0001
+  weight_decay: 0.0001
+
+# 训练配置
+training:
+  epochs: 10

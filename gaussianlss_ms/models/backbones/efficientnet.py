@@ -51,7 +51,7 @@ class MBConvBlock(nn.Cell):
         self.depthwise_conv = nn.SequentialCell([
             nn.Conv2d(
                 expanded_channels, expanded_channels, kernel_size,
-                stride=stride, padding=kernel_size//2, group=expanded_channels,
+                stride=stride, pad_mode='pad', padding=kernel_size//2, group=expanded_channels,
                 has_bias=False
             ),
             nn.BatchNorm2d(expanded_channels),
@@ -148,7 +148,7 @@ class EfficientNetBackbone(nn.Cell):
         
         # Build network
         self.stem = nn.SequentialCell([
-            nn.Conv2d(3, config['stem_channels'], 3, stride=2, padding=1, has_bias=False),
+            nn.Conv2d(3, config['stem_channels'], 3, stride=2, pad_mode='pad', padding=1, has_bias=False),
             nn.BatchNorm2d(config['stem_channels']),
             nn.SiLU()
         ])
