@@ -192,8 +192,28 @@ class LoadDataTransform(BaseTransform):
         for image_path, I_original, extrinsic in zip(
             sample.images, sample.intrinsics, sample.extrinsics
         ):
+            # Normalize path separators for cross-platform compatibility
+            normalized_path = str(image_path).replace('\\', '/').replace('//', '/')
+            
+            # Construct full path using pathlib for cross-platform compatibility
+            full_image_path = self.dataset_dir / normalized_path
+            
+            # Additional safety check - try alternative path if first doesn't exist
+            if not full_image_path.exists():
+                # Try with OS-specific separators
+                alt_path = self.dataset_dir / pathlib.Path(normalized_path)
+                if alt_path.exists():
+                    full_image_path = alt_path
+                else:
+                    raise FileNotFoundError(
+                        f"Image file not found: {full_image_path}\n"
+                        f"Also tried: {alt_path}\n"
+                        f"Original path: {image_path}\n"
+                        f"Dataset dir: {self.dataset_dir}"
+                    )
+            
             # Load and resize image
-            image = Image.open(self.dataset_dir / image_path)
+            image = Image.open(full_image_path)
             h_resize = self.img_h + self.top_crop
             w_resize = self.img_w
             
