@@ -56,7 +56,7 @@ class SegmentationMetrics:
             if predictions.shape[1] == 1:  # Binary segmentation
                 predictions = (predictions[:, 0] > self.threshold).astype(np.int64)
             else:  # Multi-class segmentation
-                predictions = np.argmax(predictions, axis=1)
+                predictions = np.argmax(predictions, dim=1)
         elif predictions.ndim == 3:  # [B, H, W]
             predictions = predictions.astype(np.int64)
         
@@ -90,8 +90,8 @@ class SegmentationMetrics:
         
         # Compute per-class IoU
         intersection = np.diag(self.confusion_matrix)
-        union = (self.confusion_matrix.sum(axis=1) + 
-                self.confusion_matrix.sum(axis=0) - 
+        union = (self.confusion_matrix.sum(dim=1) + 
+                self.confusion_matrix.sum(dim=0) - 
                 intersection)
         
         # Avoid division by zero
@@ -112,16 +112,16 @@ class SegmentationMetrics:
         metrics['pixel_accuracy'] = float(correct_pixels / max(total_pixels, 1))
         
         # Mean pixel accuracy
-        per_class_accuracy = intersection / np.maximum(self.confusion_matrix.sum(axis=1), 1)
+        per_class_accuracy = intersection / np.maximum(self.confusion_matrix.sum(dim=1), 1)
         metrics['mean_pixel_accuracy'] = float(np.mean(per_class_accuracy[valid_classes]))
         
         # Frequency weighted IoU
-        freq = self.confusion_matrix.sum(axis=1) / max(total_pixels, 1)
+        freq = self.confusion_matrix.sum(dim=1) / max(total_pixels, 1)
         metrics['freq_weighted_IoU'] = float(np.sum(freq[valid_classes] * iou_per_class[valid_classes]))
         
         # Dice coefficient (F1 score)
         dice_per_class = 2 * intersection / np.maximum(
-            self.confusion_matrix.sum(axis=1) + self.confusion_matrix.sum(axis=0), 1)
+            self.confusion_matrix.sum(dim=1) + self.confusion_matrix.sum(dim=0), 1)
         metrics['mean_dice'] = float(np.mean(dice_per_class[valid_classes]))
         
         # Per-class Dice
@@ -129,8 +129,8 @@ class SegmentationMetrics:
             metrics[f'dice_class_{i}'] = float(dice_per_class[i])
         
         # Precision and Recall per class
-        precision_per_class = intersection / np.maximum(self.confusion_matrix.sum(axis=0), 1)
-        recall_per_class = intersection / np.maximum(self.confusion_matrix.sum(axis=1), 1)
+        precision_per_class = intersection / np.maximum(self.confusion_matrix.sum(dim=0), 1)
+        recall_per_class = intersection / np.maximum(self.confusion_matrix.sum(dim=1), 1)
         
         metrics['mean_precision'] = float(np.mean(precision_per_class[valid_classes]))
         metrics['mean_recall'] = float(np.mean(recall_per_class[valid_classes]))
@@ -166,8 +166,8 @@ class SegmentationMetrics:
             np.ndarray: IoU per class
         """
         intersection = np.diag(confusion_matrix)
-        union = (confusion_matrix.sum(axis=1) + 
-                confusion_matrix.sum(axis=0) - 
+        union = (confusion_matrix.sum(dim=1) + 
+                confusion_matrix.sum(dim=0) - 
                 intersection)
         
         # Avoid division by zero

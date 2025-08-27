@@ -258,9 +258,9 @@ class LoadDataTransform(BaseTransform):
             lidar2img.append(ms.Tensor(lidar2img_matrix, dtype=ms.float32))
         
         return {
-            'image': ms.ops.stack(images, dim=0),
-            'intrinsics': ms.ops.stack(intrinsics, dim=0),
-            'lidar2img': ms.ops.stack(lidar2img, dim=0)
+            'image': ms.ops.stack(images, axis=0),
+            'intrinsics': ms.ops.stack(intrinsics, axis=0),
+            'lidar2img': ms.ops.stack(lidar2img, axis=0)
         }
     
     def get_bev_from_gtbbox(

@@ -4,6 +4,7 @@ Common utilities for data processing in MindSpore implementation.
 
 import numpy as np
 import cv2
+from pyquaternion import Quaternion
 
 # Interpolation method for OpenCV operations
 INTERPOLATION = cv2.INTER_LINEAR
@@ -17,7 +18,7 @@ def sincos2quaternion(sin_yaw, cos_yaw):
         cos_yaw (float): Cosine of yaw angle
         
     Returns:
-        list: Quaternion [w, x, y, z]
+        Quaternion: Quaternion object for rotation around Z-axis
     """
     # For rotation around Z-axis (yaw)
     # q = [cos(θ/2), 0, 0, sin(θ/2)]
@@ -27,8 +28,9 @@ def sincos2quaternion(sin_yaw, cos_yaw):
     # Determine sign of sin component based on original sin_yaw
     if sin_yaw < 0:
         half_angle_sin = -half_angle_sin
-        
-    return [half_angle_cos, 0, 0, half_angle_sin]
+    
+    # Return Quaternion object (w, x, y, z)
+    return Quaternion(w=half_angle_cos, x=0, y=0, z=half_angle_sin)
 
 def get_camera_names():
     """Get standard NuScenes camera names."""

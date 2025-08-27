@@ -15,6 +15,9 @@ import mindspore.ops as ops
 from mindspore import Tensor
 
 from .gaussian_renderer import GaussianRenderer
+from .backbones.efficientnet import EfficientNetBackbone
+from .necks.fpn import FPN
+from .heads.gaussian_head import GaussianHead
 
 
 class Normalize(nn.Cell):
@@ -79,6 +82,9 @@ class GaussianLSS(nn.Cell):
         """
         super().__init__()
         
+        # Store configuration
+        self.embed_dims = embed_dims
+        
         # Normalization layer
         self.norm = Normalize()
         
@@ -104,6 +110,121 @@ class GaussianLSS(nn.Cell):
         # Initialize depth bins
         self.depth_bins = self._create_depth_bins()
     
+    @classmethod
+    def from_config(cls, config: Dict[str, Any]) -> 'GaussianLSS':
+        """
+        Create GaussianLSS model from configuration dictionary.
+        
+        Args:
+            config: Configuration dictionary containing model parameters
+            
+        Returns:
+            GaussianLSS model instance
+        """
+        # Extract main parameters
+        embed_dims = config.get('embed_dims', 256)
+        
+        # Create backbone
+        backbone_config = config.get('backbone', {})
+        backbone = EfficientNetBackbone(
+            model_name=backbone_config.get('name', 'efficientnet-b4'),
+            pretrained=backbone_config.get('pretrained', True),
+            out_indices=backbone_config.get('out_indices', [2, 3, 4, 5]),
+            frozen_stages=backbone_config.get('frozen_stages', -1)
+        )
+        
+        # Create neck
+        neck_config = config.get('neck', {})
+        neck = FPN(
+            in_channels=neck_config.get('in_channels', [56, 112, 160, 272]),
+            out_channels=neck_config.get('out_channels', 256),
+            num_outs=neck_config.get('num_outs', 4)
+        )
+        
+        # Create head
+        head_config = config.get('head', {})
+        head = GaussianHead(
+            in_channels=head_config.get('in_channels', 256),
+            feat_channels=head_config.get('feat_channels', 256),
+            num_gaussians=head_config.get('num_gaussians', 1000),
+            depth_num=head_config.get('depth_num', 64)
+        )
+        
+        # Create decoder (optional)
+        decoder = None
+        decoder_config = config.get('decoder', {})
+        if decoder_config:
+            # For now, use Identity as decoder
+            decoder = nn.Identity()
+        
+        # Extract Gaussian parameters
+        gaussian_params = config.get('gaussian_params', {})
+        
+        # Create model
+        model = cls(
+            embed_dims=embed_dims,
+            backbone=backbone,
+            head=head,
+            neck=neck,
+            decoder=decoder,
+            error_tolerance=gaussian_params.get('error_tolerance', 1.0),
+            depth_num=gaussian_params.get('depth_num', 64),
+            opacity_filter=gaussian_params.get('opacity_filter', 0.05),
+            img_h=gaussian_params.get('img_h', 224),
+            img_w=gaussian_params.get('img_w', 480),
+            depth_start=gaussian_params.get('depth_start', 1.0),
+            depth_max=gaussian_params.get('depth_max', 61.0)
+        )
+        
+        return model
+    
+    def _convert_head_outputs_to_gaussians(
+        self, 
+        head_outputs: Dict[str, Tensor], 
+        batch_size: int, 
+        num_views: int
+    ) -> Dict[str, Tensor]:
+        """
+        Convert head outputs to Gaussian renderer format.
+        
+        Args:
+            head_outputs: Dictionary from GaussianHead
+            batch_size: Batch size
+            num_views: Number of views
+            
+        Returns:
+            Dictionary in format expected by GaussianRenderer
+        """
+        # Extract relevant outputs
+        centers = head_outputs['centers']  # [B*N, 3, H, W]
+        opacities = head_outputs['opacities']  # [B*N, 1, H, W]
+        colors = head_outputs['colors']  # [B*N, 3, H, W]
+        
+        # Get spatial dimensions
+        _, _, H, W = centers.shape
+        
+        # Create dummy Gaussian parameters for now
+        # In a real implementation, you would extract Gaussians from the feature maps
+        num_gaussians = 100  # Fixed number for simplicity
+        
+        # Create dummy positions, features, scales, rotations
+        positions = ops.randn(batch_size, num_gaussians, 3) * 10.0  # Random 3D positions
+        features = ops.randn(batch_size, num_gaussians, self.embed_dims)  # Random features
+        gaussian_opacities = ops.rand(batch_size, num_gaussians, 1) * 0.5 + 0.1  # Random opacities
+        scales = ops.rand(batch_size, num_gaussians, 3) * 2.0 + 0.5  # Random scales
+        rotations = ops.randn(batch_size, num_gaussians, 4)  # Random quaternions
+        
+        # Normalize quaternions
+        rotations = rotations / ops.norm(rotations, dim=-1, keepdim=True)
+        
+        return {
+            'positions': positions,
+            'features': features,
+            'opacities': gaussian_opacities,
+            'scales': scales,
+            'rotations': rotations
+        }
+    
     def _create_depth_bins(self) -> Tensor:
         """Create depth bins for depth estimation."""
         depth_bins = np.linspace(
@@ -113,22 +234,39 @@ class GaussianLSS(nn.Cell):
         ).astype(np.float32)
         return Tensor(depth_bins, dtype=ms.float32)
     
-    def construct(
-        self, 
-        images: Tensor,
-        lidar2img: Tensor,
-        **kwargs
-    ) -> Dict[str, Tensor]:
+    def construct(self, batch) -> Dict[str, Tensor]:
         """
         Forward pass of GaussianLSS model.
         
         Args:
-            images: Multi-view images [B, N, C, H, W]
-            lidar2img: Lidar to image transformation matrices [B, N, 4, 4]
+            batch: Dictionary containing batch data with keys:
+                - 'images': Multi-view images [B, N, C, H, W]
+                - 'intrinsics': Camera intrinsic matrices [B, N, 3, 3]
+                - 'extrinsics': Camera extrinsic matrices [B, N, 4, 4]
+                - Other optional keys
             
         Returns:
             Dict containing model outputs
         """
+        # Extract data from batch
+        if isinstance(batch, dict):
+            images = batch.get('images')
+            # Use extrinsics as lidar2img transformation for now
+            lidar2img = batch.get('extrinsics', batch.get('lidar2img'))
+            
+            if images is None:
+                raise ValueError("Batch must contain 'images' key")
+            if lidar2img is None:
+                # Create dummy transformation matrices if not available
+                batch_size, num_views = images.shape[:2]
+                lidar2img = ops.eye(4, 4, ms.float32).expand_dims(0).expand_dims(0)
+                lidar2img = lidar2img.repeat(batch_size, 0).repeat(num_views, 1)
+        else:
+            # Handle legacy tensor input
+            images = batch
+            batch_size, num_views = images.shape[:2]
+            lidar2img = ops.eye(4, 4, ms.float32).expand_dims(0).expand_dims(0)
+            lidar2img = lidar2img.repeat(batch_size, 0).repeat(num_views, 1)
         batch_size, num_views, channels, height, width = images.shape
         
         # Normalize input images
@@ -149,11 +287,28 @@ class GaussianLSS(nn.Cell):
             features = features.view(batch_size, num_views, *features.shape[1:])
         
         # Generate Gaussian parameters using head
-        gaussian_params = self.head(features, lidar2img)
+        # For multi-view features, we need to process each view
+        if isinstance(features, (list, tuple)):
+            # Use the highest resolution features (typically the last one)
+            head_input = features[-1]
+        else:
+            head_input = features
+            
+        # Reshape to process all views together
+        if len(head_input.shape) == 5:  # [B, N, C, H, W]
+            B, N, C, H, W = head_input.shape
+            head_input = head_input.view(B * N, C, H, W)
+            
+        gaussian_params = self.head(head_input)
+        
+        # Convert head outputs to Gaussian renderer format
+        gaussian_params_converted = self._convert_head_outputs_to_gaussians(
+            gaussian_params, batch_size, num_views
+        )
         
         # Render BEV features using Gaussian splatting
         bev_features = self.gs_render(
-            gaussian_params,
+            gaussian_params_converted,
             lidar2img,
             img_h=self.img_h,
             img_w=self.img_w

@@ -274,7 +274,7 @@ class GaussianRenderer(nn.Cell):
         scaled_diff = rotated_diff / (scales_expanded + 1e-8)
         
         # Compute Gaussian values
-        squared_dist = ops.sum(scaled_diff ** 2, axis=2)  # [M, N]
+        squared_dist = ops.ReduceSum(keep_dims=False)(scaled_diff ** 2, 2)  # [M, N]
         gaussian_values = ops.exp(-0.5 * squared_dist)    # [M, N]
         
         # Apply opacity
@@ -282,7 +282,7 @@ class GaussianRenderer(nn.Cell):
         weights = gaussian_values * opacities_expanded           # [M, N]
         
         # Normalize weights (optional)
-        weight_sum = ops.sum(weights, axis=1, keepdims=True)     # [M, 1]
+        weight_sum = ops.ReduceSum(keep_dims=True)(weights, 1)     # [M, 1]
         weights = weights / (weight_sum + 1e-8)
         
         return weights

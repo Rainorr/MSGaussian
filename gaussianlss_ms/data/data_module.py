@@ -41,9 +41,8 @@ class DataModule:
             image_config: Image preprocessing configuration
             augment_config: Data augmentation configuration
         """
-        self.dataset_dir = Path.cwd() / 'data' / 'nuscenes'
-        self.labels_dir = Path.cwd() / 'data' / 'nuscenes' / 'labels'
-        print(self.labels_dir)
+        self.dataset_dir = Path(dataset_dir) if dataset_dir else Path.cwd() / 'data' / 'nuscenes'
+        self.labels_dir = Path(labels_dir) if labels_dir else Path.cwd() / 'data' / 'processed'
         self.batch_size = batch_size
         self.num_workers = num_workers
         
