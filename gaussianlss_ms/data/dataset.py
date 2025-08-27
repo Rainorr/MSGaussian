@@ -306,12 +306,23 @@ def create_nuscenes_dataset(
     # Convert to MindSpore dataset
     def generator():
         for i in range(len(dataset)):
-            yield dataset[i]
+            sample = dataset[i]
+            # Return individual components as separate arrays
+            yield (
+                sample['token'],
+                sample['scene'], 
+                sample['map_name'],
+                sample['image'].asnumpy(),
+                sample['intrinsics'].asnumpy(),
+                sample['lidar2img'].asnumpy(),
+                sample['vehicle'].asnumpy(),
+                sample['vehicle_center'].asnumpy()
+            )
     
     # Create MindSpore dataset from generator
     ms_dataset = ds.GeneratorDataset(
         source=generator,
-        column_names=['token', 'scene', 'map_name', 'images', 'intrinsics', 'extrinsics', 'view', 'gt_box'],
+        column_names=['token', 'scene', 'map_name', 'images', 'intrinsics', 'lidar2img', 'vehicle', 'vehicle_center'],
         shuffle=shuffle,
         num_parallel_workers=num_workers
     )
